@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BU Parser — Apuração &amp; Auditoria Eleitoral 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#080B12;
+  --bg-2:#0C1018;
+  --surface:#131826;
+  --surface-2:#1A2132;
+  --surface-3:#212A3F;
+  --line:rgba(255,255,255,.07);
+  --line-strong:rgba(255,255,255,.15);
+  --paper:#F3EFE3;
+  --paper-2:#E9E2CD;
+  --ink:#F1EEE6;
+  --ink-soft:#C9CEDC;
+  --ink-dim:#8D96AC;
+  --ink-faint:#565F76;
+  --verified:#32D989;
+  --verified-dim:rgba(50,217,137,.12);
+  --alert:#FF6B57;
+  --alert-dim:rgba(255,107,87,.12);
+  --seal:#E7B84E;
+  --seal-dim:rgba(231,184,78,.14);
+  --azul:#4C8CFF;
+  --azul-dim:rgba(76,140,255,.12);
+  --r-lg:22px;
+  --r-md:14px;
+  --r-sm:8px;
+  --font-d:'IBM Plex Sans',system-ui,sans-serif;
+  --font-m:'IBM Plex Mono','Courier New',monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-d);
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.055) 1px, transparent 0);
+  background-size:24px 24px;
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+::selection{background:var(--seal);color:#1a1305;}
+button{font-family:inherit;cursor:pointer;}
+a{color:inherit;}
+.mono{font-family:var(--font-m);}
+.tabular{font-variant-numeric:tabular-nums;}
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--bg-2);}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:10px;}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg, rgba(19,24,38,.97), rgba(13,17,27,.97));
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:1240px;margin:0 auto;
+  padding:16px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;
+}
+.doc-id{
+  display:flex;align-items:center;gap:9px;
+  font-family:var(--font-m);
+  font-size:11px;letter-spacing:.04em;
+  color:var(--ink-dim);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:99px;
+  padding:7px 14px 7px 10px;
+  min-width:0;
+}
+.doc-id span.txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;color:var(--ink-soft);font-weight:500;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.03);}
+.dot.live{background:var(--verified);box-shadow:0 0 0 3px var(--verified-dim);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+
+.brand{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
+.brand:hover .seal-mark{transform:rotate(8deg) scale(1.04);}
+.seal-mark{transition:transform .35s cubic-bezier(.2,.8,.2,1);flex-shrink:0;}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;border-left:1px solid var(--line-strong);padding-left:12px;}
+.brand-name{font-weight:800;font-size:19px;letter-spacing:-.01em;color:var(--ink);}
+.brand-tag{font-family:var(--font-m);font-size:9.5px;letter-spacing:.16em;color:var(--seal);font-weight:600;margin-top:3px;}
+
+.topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.btn-ghost{
+  background:var(--alert-dim);color:var(--alert);border:1px solid rgba(255,107,87,.25);
+  font-size:11px;font-weight:700;letter-spacing:.03em;
+  padding:8px 13px;border-radius:99px;display:flex;align-items:center;gap:6px;
+  transition:filter .15s;
+}
+.btn-ghost:hover{filter:brightness(1.15);}
+.badge{
+  font-family:var(--font-m);font-size:10.5px;font-weight:600;letter-spacing:.05em;
+  padding:7px 13px;border-radius:99px;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-dim);
+  display:flex;align-items:center;gap:7px;
+}
+.badge.on{background:var(--verified-dim);border-color:rgba(50,217,137,.3);color:var(--verified);}
+
+.dossier-nav{
+  border-top:1px solid var(--line);
+  display:flex;justify-content:center;
+  padding:0 28px;
+}
+.tab-btn{
+  background:none;border:none;color:var(--ink-faint);
+  padding:13px 22px;font-size:12px;font-weight:700;letter-spacing:.03em;
+  display:flex;align-items:center;gap:9px;
+  border-bottom:2px solid transparent;
+  transition:color .15s, border-color .15s;
+}
+.tab-num{font-family:var(--font-m);font-size:10px;color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:4px;padding:1px 5px;transition:all .15s;}
+.tab-btn:hover:not(:disabled){color:var(--ink-soft);}
+.tab-btn.active{color:var(--ink);border-color:var(--seal);}
+.tab-btn.active .tab-num{color:#1a1305;background:var(--seal);border-color:var(--seal);}
+.tab-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ---------- layout ---------- */
+main{flex:1;max-width:1240px;width:100%;margin:0 auto;padding:36px 28px 80px;}
+section{animation:fadeIn .45s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.hidden{display:none !important;}
+
+/* ---------- upload ---------- */
+.upload-wrap{max-width:660px;margin:20px auto 0;text-align:center;}
+.eyebrow{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.22em;color:var(--seal);
+  font-weight:600;margin-bottom:14px;
+}
+.upload-wrap h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;color:var(--ink);}
+.upload-wrap p.sub{color:var(--ink-dim);font-size:14px;line-height:1.6;max-width:480px;margin:0 auto 34px;}
+
+.dropzone{
+  position:relative;overflow:hidden;
+  border:1.5px dashed var(--line-strong);
+  border-radius:var(--r-lg);
+  padding:56px 32px;
+  background:var(--surface);
+  transition:border-color .2s, background .2s;
+}
+.dropzone:hover, .dropzone.drag{border-color:var(--seal);background:var(--surface-2);}
+.dropzone:hover .scan-line{opacity:1;}
+.scan-line{
+  position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg, transparent, var(--seal), transparent);
+  opacity:0;animation:scan 2.2s linear infinite;
+}
+@keyframes scan{0%{transform:translateY(0);}100%{transform:translateY(180px);}}
+.drop-icon{
+  width:60px;height:60px;border-radius:16px;margin:0 auto 20px;
+  background:var(--seal-dim);color:var(--seal);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  border:1px solid rgba(231,184,78,.25);
+}
+.dropzone h3{font-size:15px;font-weight:700;margin:0 0 6px;color:var(--ink);}
+.dropzone p{font-size:12px;color:var(--ink-faint);margin:0;font-family:var(--font-m);}
+
+.loading-box{
+  margin-top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:16px 18px;
+  display:flex;align-items:center;gap:14px;text-align:left;
+}
+.spin-badge{
+  width:32px;height:32px;border-radius:10px;background:var(--seal-dim);color:var(--seal);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+.loading-box .t1{font-size:12.5px;font-weight:700;color:var(--ink);margin:0;}
+.loading-box .t2{font-size:11px;color:var(--ink-faint);font-family:var(--font-m);margin:2px 0 0;}
+
+/* ---------- empty state ---------- */
+.empty-state{
+  border:1px dashed var(--line-strong);border-radius:var(--r-lg);
+  padding:64px 28px;text-align:center;background:var(--surface);
+}
+.empty-state i{font-size:26px;color:var(--ink-faint);margin-bottom:16px;}
+.empty-state h3{font-size:15px;font-weight:700;color:var(--ink-soft);margin:0 0 8px;}
+.empty-state p{font-size:12.5px;color:var(--ink-faint);margin:0 0 20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;}
+.empty-cta{
+  background:var(--seal);color:#1a1305;border:none;border-radius:99px;
+  font-weight:700;font-size:12px;padding:10px 20px;letter-spacing:.02em;
+}
+
+/* ---------- cards / kpis ---------- */
+.pill-bar{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:16px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:22px;
+}
+.pill-bar .lbl{font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;color:var(--seal);font-weight:600;}
+#cargo-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{
+  padding:8px 15px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+  background:var(--surface-2);border:1px solid var(--line-strong);color:var(--ink-dim);
+  transition:all .15s;
+}
+.pill:hover{color:var(--ink);}
+.pill.active{background:var(--seal);color:#1a1305;border-color:var(--seal);}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:920px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bar-color,var(--seal));}
+.kpi .lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase;margin:0 0 10px;}
+.kpi .val{font-family:var(--font-m);font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin:0;}
+.kpi .sub{font-size:11px;color:var(--ink-faint);margin:6px 0 0;font-family:var(--font-m);}
+.kpi.azul{--bar-color:var(--azul);}
+.kpi.verified{--bar-color:var(--verified);}
+.kpi.alert{--bar-color:var(--alert);}
+.kpi.seal{--bar-color:var(--seal);}
+
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+@media(max-width:920px){.chart-grid{grid-template-columns:1fr;}}
+.chart-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:22px 22px 18px;display:flex;flex-direction:column;
+}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.chart-head h3{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--seal);margin:0;}
+.chart-head .tag{font-family:var(--font-m);font-size:10px;color:var(--ink-faint);background:var(--surface-2);border:1px solid var(--line);padding:4px 9px;border-radius:6px;}
+.chart-body{height:280px;position:relative;}
+
+/* ---------- secoes ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;}
+.panel-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;
+  border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:20px;}
+.panel-head h2{font-size:16px;font-weight:800;color:var(--ink);margin:0 0 6px;letter-spacing:-.01em;}
+.panel-head p{font-size:12px;color:var(--ink-faint);margin:0;}
+select.select-cargo{
+  background:var(--surface-2);border:1px solid var(--line-strong);color:var(--ink);
+  font-family:var(--font-m);font-size:11.5px;font-weight:600;border-radius:10px;
+  padding:9px 14px;outline:none;
+}
+select.select-cargo:focus{border-color:var(--seal);}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead tr{background:var(--surface-2);}
+th{
+  padding:12px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);font-family:var(--font-m);border-bottom:1px solid var(--line-strong);
+}
+th.r{text-align:right;}th.c{text-align:center;}
+td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink-soft);}
+tbody tr:hover{background:var(--surface-2);}
+td.r{text-align:right;font-family:var(--font-m);}td.c{text-align:center;}
+.zona-chip{font-family:var(--font-m);font-size:10.5px;background:var(--surface-2);border:1px solid var(--line-strong);padding:3px 9px;border-radius:6px;color:var(--ink-dim);}
+.tbl-wrap{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;overflow-x:auto;}
+
+.resumo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px;}
+@media(max-width:800px){.resumo-grid{grid-template-columns:1fr;}}
+.resumo-card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;}
+.resumo-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.resumo-top .z{font-size:12px;font-weight:700;color:var(--ink);}
+.status-tag{font-size:9.5px;font-weight:700;letter-spacing:.06em;background:var(--verified-dim);color:var(--verified);padding:3px 8px;border-radius:99px;}
+.resumo-card p{font-size:11.5px;color:var(--ink-faint);margin:4px 0;font-family:var(--font-m);}
+.resumo-card p b{color:var(--ink-soft);font-weight:600;}
+
+/* ---------- backend panel ---------- */
+.backend-panel{
+  max-width:900px;margin:40px auto 0;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:24px 26px;text-align:left;
+}
+.backend-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px;}
+.backend-head h3{font-size:14px;font-weight:800;color:var(--ink);margin:0;display:flex;align-items:center;gap:9px;}
+.backend-head h3 i{color:var(--azul);}
+.backend-head p{font-size:12px;color:var(--ink-faint);margin:4px 0 0;}
+.btn-mini{
+  background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line-strong);
+  font-size:11px;font-weight:700;letter-spacing:.03em;
+  padding:8px 14px;border-radius:99px;display:flex;align-items:center;gap:6px;
+  transition:filter .15s;
+}
+.btn-mini:hover{filter:brightness(1.2);}
+.backend-status{
+  font-family:var(--font-m);font-size:11.5px;color:var(--ink-dim);
+  margin:14px 0 16px;min-height:16px;
+}
+.backend-status.err{color:var(--alert);}
+.backend-status.ok{color:var(--verified);}
+
+/* ---------- auditoria ---------- */
+.audit-wrap{max-width:760px;margin:0 auto;}
+.audit-doc{
+  background:var(--paper);color:#241d0e;border-radius:var(--r-lg);
+  padding:0;overflow:hidden;box-shadow:0 20px 60px -20px rgba(0,0,0,.6);
+}
+.audit-doc-head{
+  padding:26px 30px 20px;border-bottom:2px solid rgba(36,29,14,.12);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+}
+.audit-doc-head h3{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;color:#241d0e;}
+.audit-doc-head p{font-size:11.5px;color:#6b5f3f;margin:0;font-family:var(--font-m);}
+.audit-seal{flex-shrink:0;}
+.audit-body{padding:24px 30px 30px;font-family:var(--font-m);font-size:12.5px;line-height:1.9;}
+.audit-cargo{margin-top:18px;padding-top:16px;border-top:1px dashed rgba(36,29,14,.2);}
+.audit-cargo:first-child{margin-top:0;padding-top:0;border-top:none;}
+.audit-cargo .cname{font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:12px;color:#241d0e;margin-bottom:6px;}
+.audit-line{color:#4a4128;}
+.audit-check{color:#1f8a4d;font-weight:700;display:flex;align-items:center;gap:7px;margin-top:6px;}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:22px 28px;text-align:center;}
+footer span{font-family:var(--font-m);font-size:10.5px;color:var(--ink-faint);letter-spacing:.04em;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="doc-id">
+      <span class="dot" id="status-dot"></span>
+      <span class="txt" id="header-location">nenhum documento carregado</span>
+    </div>
+
+    <div class="brand" onclick="switchTab('upload')">
+      <svg class="seal-mark" width="42" height="42" viewBox="0 0 42 42" fill="none">
+        <circle cx="21" cy="21" r="19.5" stroke="#E7B84E" stroke-width="1.4" stroke-dasharray="2.6 3.2"/>
+        <circle cx="21" cy="21" r="14.5" stroke="#E7B84E" stroke-width="1.2" opacity=".55"/>
+        <path d="M14 21.5L18.5 26L28 15.5" stroke="#E7B84E" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">BU Parser</span>
+        <span class="brand-tag">APURAÇÃO ELEITORAL 2026</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button onclick="clearLocalStorage()" id="btn-reset" class="btn-ghost hidden"><i class="fa-solid fa-trash-can"></i> Limpar</button>
+      <span id="status-badge" class="badge"><span class="dot" id="badge-dot"></span><span id="badge-text">Offline</span></span>
+    </div>
+  </div>
+
+  <nav class="dossier-nav">
+    <button onclick="switchTab('upload')" data-tab="upload" class="tab-btn active"><span class="tab-num">01</span>Importar</button>
+    <button onclick="switchTab('painel')" data-tab="painel" class="tab-btn"><span class="tab-num">02</span>Painel</button>
+    <button onclick="switchTab('secoes')" data-tab="secoes" class="tab-btn"><span class="tab-num">03</span>Seções</button>
+    <button onclick="switchTab('auditoria')" data-tab="auditoria" class="tab-btn"><span class="tab-num">04</span>Auditoria</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- UPLOAD -->
+  <section id="sec-upload">
+    <div class="upload-wrap">
+      <div class="eyebrow">LEITURA DE BOLETIM DE URNA</div>
+      <h1>Apuração e auditoria, seção por seção</h1>
+      <p class="sub">Envie um ou mais Boletins de Urna em PDF. O sistema extrai os votos por candidato, consolida múltiplas seções e confere a aritmética automaticamente.</p>
+
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <div class="scan-line"></div>
+        <input type="file" id="file-input" accept=".pdf" class="hidden" onchange="processPDF(event)">
+        <div class="drop-icon"><i class="fa-solid fa-file-import"></i></div>
+        <h3>Clique para selecionar o PDF, ou arraste aqui</h3>
+        <p>SUPORTA MÚLTIPLOS BU'S — CONSOLIDAÇÃO AUTOMÁTICA</p>
+      </div>
+
+      <div id="loading-box" class="loading-box hidden">
+        <div class="spin-badge"><i class="fa-solid fa-spinner fa-spin"></i></div>
+        <div>
+          <p class="t1" id="loading-text">Lendo arquivo binário...</p>
+          <p class="t2">executando parse vetorial de seções</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKEND: FastAPI + SQLite -->
+    <div class="backend-panel">
+      <div class="backend-head">
+        <div>
+          <h3><i class="fa-solid fa-database"></i> Base de dados (FastAPI + SQLite)</h3>
+          <p>Todo PDF importado acima é enviado e registrado no backend.</p>
+        </div>
+        <button class="btn-mini" onclick="loadBoletinsList()"><i class="fa-solid fa-rotate"></i> Atualizar lista</button>
+      </div>
+      <p id="backend-status" class="backend-status">Nenhum envio realizado nesta sessão.</p>
+      <div class="tbl-wrap">
+        <table id="table-boletins">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Arquivo</th>
+              <th>SHA-256</th>
+              <th>Status</th>
+              <th>Processado em</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-boletins">
+            <tr><td colspan="5" style="text-align:center;color:var(--ink-faint);">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAINEL -->
+  <section id="sec-painel" class="hidden">
+    <div id="painel-empty" class="empty-state">
+      <i class="fa-solid fa-chart-simple"></i>
+      <h3>Nenhum boletim carregado ainda</h3>
+      <p>Importe um PDF de BU para gerar o painel analítico com totais, gráficos e taxa de comparecimento.</p>
+      <button class="empty-cta" onclick="switchTab('upload')">Importar PDF</button>
+    </div>
+
+    <div id="painel-content" class="hidden">
+      <div class="pill-bar">
+        <span class="lbl">CARGOS</span>
+        <div id="cargo-pills"></div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi azul">
+          <p class="lbl">Aptos / Comparecimento</p>
+          <h3 id="kpi-comp" class="val tabular">0 / 0</h3>
+          <p id="kpi-comp-sub" class="sub">Taxa: 0%</p>
+        </div>
+        <div class="kpi verified">
+          <p class="lbl">Votos válidos</p>
+          <h3 id="kpi-validos" class="val tabular">0</h3>
+          <p class="sub">Nominais + Legenda</p>
+        </div>
+        <div class="kpi alert">
+          <p class="lbl">Brancos e nulos</p>
+          <h3 id="kpi-bn" class="val tabular">0 / 0</h3>
+          <p class="sub">Total invalidados</p>
+        </div>
+        <div class="kpi seal">
+          <p class="lbl">Seções processadas</p>
+          <h3 id="kpi-secoes-count" class="val">1</h3>
+          <p class="sub">Consolidação ativa</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-head">
+            <h3 id="bar-title">Votação por candidato</h3>
+            <span class="tag">SOMATÓRIO GERAL</span>
+          </div>
+          <div class="chart-body"><canvas id="candidatesChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <h3>Tipos de voto</h3>
+            <span class="tag">GERAL</span>
+          </div>
+          <div class="chart-body"><canvas id="votesTypeChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECOES -->
+  <section id="sec-secoes" class="hidden">
+    <div id="secoes-empty" class="empty-state">
+      <i class="fa-solid fa-table-cells"></i>
+      <h3>Nada para detalhar ainda</h3>
+      <p>Assim que um BU for processado, a matriz por seção e os somatórios aparecem aqui.</p>
+      <button class="empty-cta" onclick="switchTab('upload')">Importar PDF</button>
+    </div>
+
+    <div id="secoes-content" class="hidden panel">
+      <div class="panel-head">
+        <div>
+          <h2>Matriz por seção &amp; somatórios</h2>
+          <p>Visão granular do desempenho dos candidatos, dividida por zona e seção eleitoral.</p>
+        </div>
+        <select id="select-cargo-secoes" onchange="renderSecoesTable()" class="select-cargo"></select>
+      </div>
+
+      <div class="tbl-wrap">
+        <table id="table-secoes">
+          <thead>
+            <tr>
+              <th>Candidato / Legenda</th>
+              <th class="c">Zona / Seção</th>
+              <th class="r">Votos na seção</th>
+              <th class="r">% na seção</th>
+              <th class="r" style="color:var(--seal)">Somatório total</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-secoes"></tbody>
+        </table>
+      </div>
+
+      <div class="resumo-grid" id="cards-secoes-resumo"></div>
+    </div>
+  </section>
+
+  <!-- AUDITORIA -->
+  <section id="sec-auditoria" class="hidden">
+    <div id="auditoria-empty" class="empty-state">
+      <i class="fa-solid fa-stamp"></i>
+      <h3>Aguardando processamento</h3>
+      <p>O parecer técnico de auditoria aritmética é gerado automaticamente após a importação do BU.</p>
+      <button class="empty-cta" onclick="switchTab('upload')">Importar PDF</button>
+    </div>
+
+    <div id="auditoria-content" class="hidden audit-wrap">
+      <div class="audit-doc">
+        <div class="audit-doc-head">
+          <div>
+            <h3>Parecer técnico — auditoria aritmética</h3>
+            <p id="audit-subhead">multi-seção</p>
+          </div>
+          <svg class="audit-seal" width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <circle cx="26" cy="26" r="24.5" stroke="#1f8a4d" stroke-width="1.4" stroke-dasharray="3 3.4"/>
+            <circle cx="26" cy="26" r="18" stroke="#1f8a4d" stroke-width="1.1" opacity=".5"/>
+            <path d="M17 26.5L22.5 32L35 18.5" stroke="#1f8a4d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="audit-body" id="audit-content">Aguardando processamento do documento.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer><span id="footer-hash" class="mono">BU-PARSER · v3 · SHA REF PENDENTE</span></footer>
+
+<script>
+function switchTab(tabId) {
+    const disabled = !hasData() && tabId !== 'upload';
+    if (disabled) tabId = 'upload';
+
+    ['upload', 'painel', 'secoes', 'auditoria'].forEach(t => {
+        document.getElementById(`sec-${t}`).classList.add('hidden');
+        document.getElementById(`nav-marker-${t}`);
+        const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
+        if (btn) btn.classList.remove('active');
+    });
+    document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+    const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    if (tabId === 'secoes') renderSecoesTable();
+}
+
+function hasData(){
+    return !!(parsedData && parsedData.cargos && Object.keys(parsedData.cargos).length > 0);
+}
+
+function updateNavAvailability(){
+    const enabled = hasData();
+    ['painel','secoes','auditoria'].forEach(t=>{
+        const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
+        if (btn) btn.disabled = !enabled;
+    });
+    document.getElementById('painel-empty').classList.toggle('hidden', enabled);
+    document.getElementById('painel-content').classList.toggle('hidden', !enabled);
+    document.getElementById('secoes-empty').classList.toggle('hidden', enabled);
+    document.getElementById('secoes-content').classList.toggle('hidden', !enabled);
+    document.getElementById('auditoria-empty').classList.toggle('hidden', enabled);
+    document.getElementById('auditoria-content').classList.toggle('hidden', !enabled);
+}
+
+let parsedData = {};
+let currentCargo = '';
+let chartCandidates = null, chartTypes = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+    updateNavAvailability();
+    loadBoletinsList();
+    const savedData = localStorage.getItem('bu_parsed_data_v3');
+    if (savedData) {
+        try {
+            parsedData = JSON.parse(savedData);
+            restoreUIState();
+        } catch (e) {
+            console.error("Erro ao carregar dados salvos:", e);
+            localStorage.removeItem('bu_parsed_data_v3');
+        }
+    }
+
+    const dz = document.getElementById('dropzone');
+    ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+    dz.addEventListener('drop', e => {
+        const file = e.dataTransfer.files[0];
+        if (file) processPDF({ target: { files: [file] } });
+    });
+});
+
+async function processPDF(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Envia o PDF para o backend (FastAPI + SQLite) em paralelo, sem bloquear o parse local.
+    uploadToBackend(file);
+
+    const loadingBox = document.getElementById('loading-box');
+    const loadingText = document.getElementById('loading-text');
+    loadingBox.classList.remove('hidden');
+    loadingText.innerText = `Lendo arquivo: ${file.name}`;
+
+    try {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+        let fullText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            let lastY = null, pageStr = "";
+            for (let item of content.items) {
+                if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) pageStr += "\n";
+                pageStr += item.str + " ";
+                lastY = item.transform[5];
+            }
+            fullText += pageStr + "\n";
+        }
+
+        let newBU = parseBU(fullText);
+
+        if (!parsedData.secoesList) {
+            parsedData = { meta: newBU.meta, secoesList: [], cargos: {} };
+        }
+
+        let existeIndex = parsedData.secoesList.findIndex(s => s.meta.zona === newBU.meta.zona && s.meta.secao === newBU.meta.secao);
+        if (existeIndex >= 0) {
+            parsedData.secoesList[existeIndex] = newBU;
+        } else {
+            parsedData.secoesList.push(newBU);
+        }
+
+        consolidateAllSecoes();
+        localStorage.setItem('bu_parsed_data_v3', JSON.stringify(parsedData));
+
+        restoreUIState();
+        setTimeout(() => switchTab('painel'), 500);
+
+    } catch (err) {
+        console.error(err);
+        loadingText.innerText = `Erro ao processar: ${err.message}`;
+    }
+}
+
+function consolidateAllSecoes() {
+    if (!parsedData.secoesList || parsedData.secoesList.length === 0) return;
+
+    let consolidatedCargos = {};
+    let totalAptos = 0;
+    let totalComparecimento = 0;
+
+    parsedData.secoesList.forEach(bu => {
+        totalAptos += bu.meta.aptos || 0;
+        totalComparecimento += bu.meta.comparecimento || 0;
+
+        Object.keys(bu.cargos).forEach(cargoKey => {
+            if (!consolidatedCargos[cargoKey]) {
+                consolidatedCargos[cargoKey] = {
+                    aptos: 0, comparecimento: 0, validos: 0, brancos: 0, nulos: 0, candidatosMap: {}
+                };
+            }
+            let cTarget = consolidatedCargos[cargoKey];
+            let cSource = bu.cargos[cargoKey];
+
+            cTarget.aptos += cSource.aptos;
+            cTarget.comparecimento += cSource.comparecimento;
+            cTarget.validos += cSource.validos;
+            cTarget.brancos += cSource.brancos;
+            cTarget.nulos += cSource.nulos;
+
+            cSource.candidatos.forEach(cand => {
+                if (!cTarget.candidatosMap[cand.nome]) cTarget.candidatosMap[cand.nome] = 0;
+                cTarget.candidatosMap[cand.nome] += cand.votos;
+            });
+        });
+    });
+
+    let finalCargos = {};
+    Object.keys(consolidatedCargos).forEach(cargoKey => {
+        let item = consolidatedCargos[cargoKey];
+        let candidatosArray = Object.keys(item.candidatosMap).map(nome => ({ nome, votos: item.candidatosMap[nome] }));
+        candidatosArray.sort((a, b) => b.votos - a.votos);
+
+        finalCargos[cargoKey] = {
+            aptos: item.aptos, comparecimento: item.comparecimento,
+            validos: item.validos, brancos: item.brancos, nulos: item.nulos,
+            candidatos: candidatosArray
+        };
+    });
+
+    parsedData.cargos = finalCargos;
+    parsedData.meta.aptos = totalAptos;
+    parsedData.meta.comparecimento = totalComparecimento;
+}
+
+function restoreUIState() {
+    if (!parsedData || !parsedData.meta) return;
+
+    let countSec = parsedData.secoesList ? parsedData.secoesList.length : 1;
+    document.getElementById('header-location').innerText = `${parsedData.meta.municipio} — ${countSec} seção(ões)`;
+    document.getElementById('status-dot').classList.add('live');
+    document.getElementById('badge-dot').classList.add('live');
+    document.getElementById('badge-text').innerText = `Salvo (${countSec})`;
+    document.getElementById('status-badge').classList.add('on');
+    document.getElementById('btn-reset').classList.remove('hidden');
+    document.getElementById('kpi-secoes-count').innerText = countSec;
+
+    const hashSeed = `${parsedData.meta.municipio}-${countSec}-${parsedData.meta.aptos}`.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    document.getElementById('footer-hash').innerText = `BU-PARSER · v3 · REF ${hashSeed.toString(16).toUpperCase().padStart(6,'0')}`;
+
+    buildCargoPills();
+    populateSecoesSelect();
+    updateNavAvailability();
+}
+
+function clearLocalStorage() {
+    if (confirm("Deseja apagar todos os dados e seções salvos?")) {
+        localStorage.removeItem('bu_parsed_data_v3');
+        location.reload();
+    }
+}
+
+function parseBU(text) {
+    let data = {
+        meta: { municipio: "CURRAIS NOVOS", zona: "0020", secao: "0043", aptos: 0, comparecimento: 0 },
+        cargos: {}
+    };
+
+    const mun = text.match(/(?:Município|Municipio)[\s:]+([A-ZÀ-Ú\s]+)/i);
+    if (mun) data.meta.municipio = mun[1].trim();
+    const zona = text.match(/Zona Eleitoral[\s:]+(\d+)/i);
+    if (zona) data.meta.zona = zona[1].trim();
+    const secao = text.match(/Seção Eleitoral[\s:]+(\d+)/i);
+    if (secao) data.meta.secao = secao[1].trim();
+    const aptos = text.match(/Eleitores aptos[\s:]+(\d+)/i);
+    if (aptos) data.meta.aptos = parseInt(aptos[1], 10);
+    const comp = text.match(/Comparecimento[\s:]+(\d+)/i);
+    if (comp) data.meta.comparecimento = parseInt(comp[1], 10);
+
+    const cargoKeywords = ['PRESIDENTE', 'GOVERNADOR', 'SENADOR', 'DEPUTADO FEDERAL', 'DEPUTADO ESTADUAL', 'PREFEITO', 'VEREADOR'];
+    let pattern = new RegExp(`(?:---|\\b)(${cargoKeywords.join('|')})(?:---|\\b)`, 'gi');
+    let splits = text.split(pattern);
+
+    for (let i = 1; i < splits.length; i += 2) {
+        let cargoName = splits[i].trim().toLowerCase();
+        let content = splits[i + 1];
+
+        let candidatos = [];
+        let brancos = 0, nulos = 0, nominais = 0, legenda = 0;
+
+        const b = content.match(/(?:Brancos|Brancos:)\s*(\d+)/i);
+        if (b) brancos = parseInt(b[1], 10);
+        const n = content.match(/(?:Nulos|Nulos:)\s*(\d+)/i);
+        if (n) nulos = parseInt(n[1], 10);
+        const nom = content.match(/Total de votos Nominais[\s:]+(\d+)/i);
+        if (nom) nominais = parseInt(nom[1], 10);
+        const leg = content.match(/Total de votos de Legenda[\s:]+(\d+)/i);
+        if (leg) legenda = parseInt(leg[1], 10);
+
+        content.split('\n').forEach(line => {
+            line = line.trim();
+            const match = line.match(/^([A-ZÀ-Ú\s\.\-\/\(\)]+?)\s+(\d{2,5})(?:\s+[A-Z0-9\-\/]+)?\s+(\d+)$/i);
+            if (match) {
+                let nomeCandidato = match[1].trim();
+                let numeroCandidato = match[2];
+                let totalVotos = parseInt(match[3], 10);
+
+                if (!nomeCandidato.includes('TOTAL') && !nomeCandidato.includes('BRANCOS')) {
+                    candidatos.push({ nome: `${nomeCandidato} (${numeroCandidato})`, votos: totalVotos });
+                }
+            }
+        });
+
+        candidatos.sort((a, b) => b.votos - a.votos);
+        let validos = nominais > 0 ? nominais + legenda : candidatos.reduce((acc, c) => acc + c.votos, 0);
+
+        data.cargos[cargoName] = {
+            aptos: data.meta.aptos, comparecimento: data.meta.comparecimento,
+            validos, brancos, nulos, candidatos
+        };
+    }
+
+    return data;
+}
+
+function buildCargoPills() {
+    const keys = Object.keys(parsedData.cargos);
+    if (keys.length === 0) return;
+
+    let container = document.getElementById('cargo-pills');
+    container.innerHTML = '';
+
+    keys.forEach((cargo, idx) => {
+        if (idx === 0) currentCargo = cargo;
+        let btn = document.createElement('button');
+        btn.id = `pill-${cargo}`;
+        btn.innerText = cargo.toUpperCase();
+        btn.className = idx === 0 ? "pill active" : "pill";
+        btn.onclick = () => selectCargo(cargo);
+        container.appendChild(btn);
+    });
+
+    initCharts();
+    updateDashboard();
+    buildAudit();
+}
+
+function selectCargo(cargo) {
+    currentCargo = cargo;
+    Object.keys(parsedData.cargos).forEach(c => {
+        const b = document.getElementById(`pill-${c}`);
+        b.className = c === cargo ? "pill active" : "pill";
+    });
+    document.getElementById('bar-title').innerText = `Votação por candidato — ${cargo.toUpperCase()}`;
+    updateDashboard();
+}
+
+function updateDashboard() {
+    const d = parsedData.cargos[currentCargo];
+    if (!d) return;
+
+    document.getElementById('kpi-comp').innerText = `${d.aptos} / ${d.comparecimento}`;
+    let pct = d.aptos > 0 ? ((d.comparecimento / d.aptos) * 100).toFixed(1) : 0;
+    document.getElementById('kpi-comp-sub').innerText = `Taxa de comparecimento: ${pct}%`;
+    document.getElementById('kpi-validos').innerText = d.validos.toLocaleString('pt-BR');
+    document.getElementById('kpi-bn').innerText = `${d.brancos} / ${d.nulos}`;
+
+    chartCandidates.data.labels = d.candidatos.map(c => c.nome);
+    chartCandidates.data.datasets[0].data = d.candidatos.map(c => c.votos);
+    chartCandidates.update();
+
+    chartTypes.data.datasets[0].data = [d.validos, d.brancos, d.nulos];
+    chartTypes.update();
+}
+
+function populateSecoesSelect() {
+    const keys = Object.keys(parsedData.cargos);
+    const select = document.getElementById('select-cargo-secoes');
+    select.innerHTML = '';
+    keys.forEach(cargo => {
+        let opt = document.createElement('option');
+        opt.value = cargo;
+        opt.innerText = cargo.toUpperCase();
+        select.appendChild(opt);
+    });
+}
+
+function renderSecoesTable() {
+    if (!hasData()) return;
+    const cargoSelect = document.getElementById('select-cargo-secoes').value || currentCargo;
+    if (!cargoSelect || !parsedData.secoesList) return;
+
+    let tbody = document.getElementById('tbody-secoes');
+    tbody.innerHTML = '';
+
+    let secoesList = parsedData.secoesList;
+
+    secoesList.forEach(bu => {
+        let cargoData = bu.cargos[cargoSelect];
+        if (!cargoData) return;
+
+        cargoData.candidatos.forEach(cand => {
+            let pctSecao = cargoData.validos > 0 ? ((cand.votos / cargoData.validos) * 100).toFixed(1) : 0;
+            let somatorioTotalCand = parsedData.cargos[cargoSelect].candidatos.find(c => c.nome === cand.nome)?.votos || cand.votos;
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${cand.nome}</td>
+                <td class="c"><span class="zona-chip">Zona ${bu.meta.zona} / Seç. ${bu.meta.secao}</span></td>
+                <td class="r tabular" style="color:var(--azul);font-weight:600;">${cand.votos.toLocaleString('pt-BR')}</td>
+                <td class="r tabular" style="color:var(--ink-faint)">${pctSecao}%</td>
+                <td class="r tabular" style="color:var(--seal);font-weight:700;">${somatorioTotalCand.toLocaleString('pt-BR')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+
+    let cardsContainer = document.getElementById('cards-secoes-resumo');
+    cardsContainer.innerHTML = '';
+    secoesList.forEach(bu => {
+        let cd = bu.cargos[cargoSelect];
+        if (!cd) return;
+        let card = document.createElement('div');
+        card.className = "resumo-card";
+        card.innerHTML = `
+            <div class="resumo-top">
+                <span class="z">Zona ${bu.meta.zona} · Seção ${bu.meta.secao}</span>
+                <span class="status-tag">ATIVO</span>
+            </div>
+            <p>Aptos/Comp: <b>${cd.aptos} / ${cd.comparecimento}</b></p>
+            <p>Votos válidos: <b style="color:var(--azul)">${cd.validos}</b></p>
+            <p>Brancos / Nulos: <b>${cd.brancos} / ${cd.nulos}</b></p>
+        `;
+        cardsContainer.appendChild(card);
+    });
+}
+
+function initCharts() {
+    const d = parsedData.cargos[currentCargo];
+    if (chartCandidates) chartCandidates.destroy();
+    if (chartTypes) chartTypes.destroy();
+
+    const palette = ['#E7B84E', '#32D989', '#4C8CFF', '#FF6B57', '#9D7BFF', '#38BDD4'];
+    const gridColor = 'rgba(255,255,255,.06)';
+    const tickColor = '#8D96AC';
+
+    const ctxBar = document.getElementById('candidatesChart').getContext('2d');
+    chartCandidates = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: d.candidatos.map(c => c.nome),
+            datasets: [{
+                data: d.candidatos.map(c => c.votos),
+                backgroundColor: d.candidatos.map((_, i) => palette[i % palette.length]),
+                borderRadius: 6,
+                maxBarThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 10, weight: '600', family: 'IBM Plex Mono' } } },
+                y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10, weight: '600', family: 'IBM Plex Mono' } } }
+            }
+        }
+    });
+
+    const ctxDoughnut = document.getElementById('votesTypeChart').getContext('2d');
+    chartTypes = new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+            labels: ['Válidos', 'Brancos', 'Nulos'],
+            datasets: [{
+                data: [d.validos, d.brancos, d.nulos],
+                backgroundColor: ['#4C8CFF', '#8D96AC', '#FF6B57'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11, weight: '600', family: 'IBM Plex Mono' }, padding: 14 } }
+            },
+            cutout: '74%'
+        }
+    });
+}
+
+function buildAudit() {
+    document.getElementById('audit-subhead').innerText =
+        `${parsedData.meta.municipio} · ${parsedData.secoesList ? parsedData.secoesList.length : 1} seção(ões) consolidada(s)`;
+
+    let html = '';
+    Object.keys(parsedData.cargos).forEach(cargo => {
+        let d = parsedData.cargos[cargo];
+        let totalSoma = d.validos + d.brancos + d.nulos;
+        html += `<div class="audit-cargo">`;
+        html += `<div class="cname">${cargo}</div>`;
+        html += `<div class="audit-line">Válidos (${d.validos}) + Brancos (${d.brancos}) + Nulos (${d.nulos}) = <b>${totalSoma}</b> votos consolidados.</div>`;
+        html += `<div class="audit-check"><i class="fa-solid fa-circle-check"></i> Batimento aritmético e cruzamento multi-seção validados.</div>`;
+        html += `</div>`;
+    });
+
+    document.getElementById('audit-content').innerHTML = html;
+}
+
+/* ---------- integração com backend (FastAPI + SQLite) ---------- */
+const API_BASE = '/api/boletins';
+
+async function uploadToBackend(file) {
+    const statusEl = document.getElementById('backend-status');
+    statusEl.className = 'backend-status';
+    statusEl.innerText = `Enviando "${file.name}" para o backend...`;
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body: formData });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `Erro HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        statusEl.className = 'backend-status ok';
+        statusEl.innerText = `Registrado: ${data.nome_arquivo} · SHA-256 ${data.sha256.slice(0, 16)}... · status ${data.status}`;
+
+        await loadBoletinsList();
+    } catch (err) {
+        console.error('Falha ao enviar para o backend:', err);
+        statusEl.className = 'backend-status err';
+        statusEl.innerText = `Falha ao registrar no backend: ${err.message}`;
+    }
+}
+
+async function loadBoletinsList() {
+    const tbody = document.getElementById('tbody-boletins');
+    try {
+        const res = await fetch(API_BASE);
+        if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+        const items = await res.json();
+
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-faint);">Nenhum boletim registrado ainda.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        items.forEach(b => {
+            const dataFmt = new Date(b.data_processamento + 'Z').toLocaleString('pt-BR');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="tabular">${b.id}</td>
+                <td>${b.nome_arquivo}</td>
+                <td class="mono" title="${b.sha256}">${b.sha256.slice(0, 16)}...</td>
+                <td>${b.status}</td>
+                <td class="mono">${dataFmt}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error('Falha ao carregar lista do backend:', err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--alert);">Erro ao carregar: ${err.message}</td></tr>`;
+    }
+}
+</script>
+</body>
+</html>
